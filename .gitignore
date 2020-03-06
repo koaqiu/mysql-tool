@@ -1,0 +1,5 @@
+out/
+data/dpj2dev_id_rsa
+data/**/*.json
+node_modules/
+yarn-error.log
