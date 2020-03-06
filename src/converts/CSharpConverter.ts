@@ -1,7 +1,7 @@
 import BaseConverter, { TableType, ColumnType, ConstraintType, StatisticsType } from './BaseConverter';
 import { MySQL } from 'x-mysql-ssh';
 
-function getDf(type:string, value:string) {
+function getDf(type: string, value: string) {
     switch (type) {
         case 'int':
             return value;
@@ -53,7 +53,7 @@ export default class CSharpConverter extends BaseConverter {
             switch (column.DATA_TYPE) {
                 case 'int':
                 case 'tinyint':
-                //case 'float':
+                    //case 'float':
                     type = 'int';
                     break;
                 case 'text':
@@ -89,17 +89,44 @@ export default class CSharpConverter extends BaseConverter {
         const tabs4 = this.getTab(4);
         const tabs5 = this.getTab(5);
         let s: string[] = [];
-        s.push(...this.getSummaryByParams('DbContext.OnModelCreating',[{name:'modelBuilder', comment:''}], 2));
+        s.push(...this.getSummaryByParams('DbContext.OnModelCreating', [{ name: 'modelBuilder', comment: '' }], 2));
         s.push(`${tabs2}public static void ModelCreating(ModelBuilder modelBuilder) {`);
         s.push(`${tabs3}modelBuilder.Entity<${tableName.toUpperCase()}>(entity => {`);
-        const key = constraintList.filter(ii => ii.IsPrimary).pop();
-        if (key !== undefined) {
+        
+        const keys = constraintList.filter(ii => ii.IsPrimary);
+        if(keys.length >1){
+            const tmp = keys.map(s=> `e.${s.COLUMN_NAME}`).join(', ');
+            s.push(`${tabs4}entity.HasKey(e => new {${tmp}});`);
+            s.push('');
+        }else{
+            const key = keys[0];
             s.push(`${tabs4}entity.HasKey(e => e.${key.COLUMN_NAME});`);
             s.push('');
         }
-        statisticsList.filter(s => s.INDEX_NAME !== 'PRIMARY').forEach(statistics => {
-            s.push(`${tabs4}entity.HasIndex(e => e.${statistics.COLUMN_NAME})`);
-            s.push(`${tabs5}.HasName("${statistics.INDEX_NAME}");${statistics.COMMENT ? (`// ${statistics.COMMENT}`) : ''}`);
+        const group: {
+            [key: string]: StatisticsType[]
+        } = {};
+        statisticsList.filter(s => s.INDEX_NAME !== 'PRIMARY')
+            .forEach(statistics => {
+                let list = group[statistics.INDEX_NAME];
+                if (list === undefined) {
+                    list = [statistics];
+                } else {
+                    list.push(statistics);
+                }
+                group[statistics.INDEX_NAME] = list;
+            });
+        Object.values(group).forEach(list => {
+            if (list.length === 1) {
+                const statistics = list[0];
+                s.push(`${tabs4}entity.HasIndex(e => e.${statistics.COLUMN_NAME})`);
+                s.push(`${tabs5}.HasName("${statistics.INDEX_NAME}");${statistics.COMMENT ? (`// ${statistics.COMMENT}`) : ''}`);
+            }else{
+                const tmp = list.map(statistics=> `e.${statistics.COLUMN_NAME}`)
+                s.push(`${tabs4}entity.HasIndex(e => new {${tmp.join(', ')}})`);
+                const statistics = list[0];
+                s.push(`${tabs5}.HasName("${statistics.INDEX_NAME}");${statistics.COMMENT ? (`// ${statistics.COMMENT}`) : ''}`);
+            }
             s.push('');
         });
         columnList.forEach(column => {

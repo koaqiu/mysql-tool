@@ -1,10 +1,19 @@
 
 import FS from 'fs';
 import PATH from 'path';
+import OS from 'os';
 import sshMySql, { IDbConfig } from 'x-mysql-ssh';
 
 const workPath = PATH.basename(__dirname) === 'out' ? PATH.dirname(__dirname) : __dirname;
-
+function getPath(...paths:string[]){
+    if(paths.length<1){
+        return PATH.resolve();
+    }
+    if(paths[0]==='~'){
+        paths[0] = OS.homedir();
+    }
+    return PATH.resolve(...paths);
+}
 const dbConfig_PRD = {
     WMS: {
         database: 'dpj_wms',
@@ -48,7 +57,7 @@ const sshConfig = {
     host: '120.79.192.182',
     port: 22,
     username: 'dev',
-    privateKey: FS.readFileSync(PATH.join(workPath, 'data', 'dpj2dev_id_rsa'))
+    privateKey: FS.readFileSync(getPath('~', '.ssh', 'dpj_dev_id_rsa'))
 }
 export function getDbConfig(env: string, prj: 'B2B'|'WMS'){
     return dbConfig[env][prj];
