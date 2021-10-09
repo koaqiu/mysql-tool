@@ -1,0 +1,1 @@
+node . model --ns com.depoga.Database.B2B --out D:\Works\depoga\deepsearch\Sunable.MicroServiceApi\DataBaseRepository\Database\ --ssh true %*

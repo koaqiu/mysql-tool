@@ -7,22 +7,22 @@ import FS from 'fs';
 import { GetPath } from './config';
 import ConverterFactory from './converts/ConverterFactory';
 
-function getPrject(namespace:string){
-    let entry = 'D:\\Works\\depoga\\deepsearch\\Sunable.MicroServiceApi\\Design.API\\Database\\ApiDbContext.cs';
-    if(FS.existsSync(entry)){
-        const dbContext = FS.readFileSync(entry).toString();
-        const m = /[ \t]{0,}namespace[\s]{1,}(.+)[\s\{]{0,}/ig.exec(dbContext);
-        if(m){
-            namespace = m[1];
-        }
-        return {
-            namespace,
-            tableBegin: dbContext.indexOf('TABLE BEGIN'),
-            tableEnd: dbContext.indexOf('TABLE END'),
-            OnModelCreatingBegin: dbContext.indexOf('OnModelCreating BEGIN'),
-            OnModelCreatingEnd: dbContext.indexOf('OnModelCreating END'),
-        }
-    }
+function getPrject(namespace: string) {
+    // let entry = 'D:\\Works\\depoga\\deepsearch\\Sunable.MicroServiceApi\\Design.API\\Database\\ApiDbContext.cs';
+    // if (FS.existsSync(entry)) {
+    //     const dbContext = FS.readFileSync(entry).toString();
+    //     const m = /[ \t]{0,}namespace[\s]{1,}(.+)[\s\{]{0,}/ig.exec(dbContext);
+    //     if (m) {
+    //         namespace = m[1];
+    //     }
+    //     return {
+    //         namespace,
+    //         tableBegin: dbContext.indexOf('TABLE BEGIN'),
+    //         tableEnd: dbContext.indexOf('TABLE END'),
+    //         OnModelCreatingBegin: dbContext.indexOf('OnModelCreating BEGIN'),
+    //         OnModelCreatingEnd: dbContext.indexOf('OnModelCreating END'),
+    //     }
+    // }
     return {
         namespace,
         tableBegin: -1,
@@ -81,11 +81,11 @@ export default async function Main(args: string[]) {
         })
         .parse(args);
     console.log('工作环境：', command.Options['env']);
-    if(command.Args.length<1){
+    if (command.Args.length < 1) {
         console.log('请输入 需要读取的 表格名称');
         return 1;
     }
-    const prj=getPrject(command.Options['ns']);
+    const prj = getPrject(command.Options['ns']);
     if (command.Options['ssh'] === true) {
         console.log('使用SSH通道');
     }

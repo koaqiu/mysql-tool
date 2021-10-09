@@ -14,6 +14,8 @@ export type ColumnType = {
     COLUMN_TYPE: string,
     COLUMN_COMMENT: string,
     IsRequired: boolean,
+    EXTRA:string,
+    IsAutoIncrement:boolean,
 }
 export type StatisticsType = {
     TABLE_SCHEMA: string,
@@ -77,13 +79,14 @@ export default abstract class BaseConverter {
     }
     protected async getColumnList(mysql: MySQL, dbName: string, table: TableType): Promise<ColumnType[]> {
         const result = await mysql.query(
-            'SELECT COLUMN_NAME, COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,COLUMN_TYPE,COLUMN_COMMENT FROM ?? WHERE TABLE_SCHEMA LIKE ? AND TABLE_NAME LIKE ?',
+            'SELECT COLUMN_NAME, COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,COLUMN_TYPE,COLUMN_COMMENT,EXTRA FROM ?? WHERE TABLE_SCHEMA LIKE ? AND TABLE_NAME LIKE ?',
             'information_schema.COLUMNS', //TABLE
             dbName, table.TABLE_NAME).catch(fixCatch);
         if (result.Success) {
             return result.Result.map(column => ({
                 ...column,
                 IsRequired: column.IS_NULLABLE === 'NO',
+                IsAutoIncrement: column.EXTRA != null && column.EXTRA.includes('auto_increment'),
             }));
         } else {
             console.log(result.Err);

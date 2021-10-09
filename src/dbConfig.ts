@@ -42,7 +42,7 @@ const dbConfig_SIT = {
     B2B: {
         database: 'dpj_sit',
         user: 'depoga_dev',
-        password: '4ar75!v27',
+        password: '10aycR&h',
         port: 3306,
         host: 'rm-wz97mb4ar75v27x35.mysql.rds.aliyuncs.com'
     }
@@ -54,7 +54,7 @@ const dbConfig: { [env: string]: { [prj: string]: IDbConfig } } = {
     // "LOC": dbConfig_LOC,
 }
 const sshConfig = {
-    host: '120.79.192.182',
+    host: '120.76.131.15',
     port: 22,
     username: 'dev',
     privateKey: FS.readFileSync(getPath('~', '.ssh', 'dpj_dev_id_rsa'))

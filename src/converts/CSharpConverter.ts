@@ -56,6 +56,7 @@ export default class CSharpConverter extends BaseConverter {
                     //case 'float':
                     type = 'int';
                     break;
+                case 'json':
                 case 'text':
                 case 'mediumtext':
                 case 'varchar':
@@ -92,13 +93,13 @@ export default class CSharpConverter extends BaseConverter {
         s.push(...this.getSummaryByParams('DbContext.OnModelCreating', [{ name: 'modelBuilder', comment: '' }], 2));
         s.push(`${tabs2}public static void ModelCreating(ModelBuilder modelBuilder) {`);
         s.push(`${tabs3}modelBuilder.Entity<${tableName.toUpperCase()}>(entity => {`);
-        
+
         const keys = constraintList.filter(ii => ii.IsPrimary);
-        if(keys.length >1){
-            const tmp = keys.map(s=> `e.${s.COLUMN_NAME}`).join(', ');
+        if (keys.length > 1) {
+            const tmp = keys.map(s => `e.${s.COLUMN_NAME}`).join(', ');
             s.push(`${tabs4}entity.HasKey(e => new {${tmp}});`);
             s.push('');
-        }else{
+        } else if (keys.length > 0) {
             const key = keys[0];
             s.push(`${tabs4}entity.HasKey(e => e.${key.COLUMN_NAME});`);
             s.push('');
@@ -121,8 +122,8 @@ export default class CSharpConverter extends BaseConverter {
                 const statistics = list[0];
                 s.push(`${tabs4}entity.HasIndex(e => e.${statistics.COLUMN_NAME})`);
                 s.push(`${tabs5}.HasName("${statistics.INDEX_NAME}");${statistics.COMMENT ? (`// ${statistics.COMMENT}`) : ''}`);
-            }else{
-                const tmp = list.map(statistics=> `e.${statistics.COLUMN_NAME}`)
+            } else {
+                const tmp = list.map(statistics => `e.${statistics.COLUMN_NAME}`)
                 s.push(`${tabs4}entity.HasIndex(e => new {${tmp.join(', ')}})`);
                 const statistics = list[0];
                 s.push(`${tabs5}.HasName("${statistics.INDEX_NAME}");${statistics.COMMENT ? (`// ${statistics.COMMENT}`) : ''}`);
@@ -135,6 +136,9 @@ export default class CSharpConverter extends BaseConverter {
                 s.push(`${tabs5}.IsRequired()`);
             }
             s.push(`${tabs5}.HasColumnType("${column.COLUMN_TYPE}")`);
+            if(column.IsAutoIncrement){
+                s.push(`${tabs5}.ValueGeneratedOnAdd()`);
+            }
             if (typeof (column.COLUMN_DEFAULT) === 'string' && column.COLUMN_DEFAULT !== 'CURRENT_TIMESTAMP') {
                 s.push(`${tabs5}.HasDefaultValueSql("'${column.COLUMN_DEFAULT}'");`);
             } else {
